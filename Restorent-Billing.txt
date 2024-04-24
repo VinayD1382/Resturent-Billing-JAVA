@@ -1,182 +1,584 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
+import java.util.*;
+import java.util.Date;
+import java.time.LocalDate;
 
-struct items{
-    char item[20];
-    float price;
-    int qty;
-};
 
-struct orders{
-    char customer[50];
-    char date[50];
-    int numOfItems;
-    struct items itm[50];
-};
-//functions to generate biils
-void generateBillHeader(char name[50],char date[30]){
-    printf("\n\n");
-        printf("\t    ADV. Restaurant");
-        printf("\n\t   -----------------");
-        printf("\nDate:%s",date);
-        printf("\nInvoice To: %s",name);
-        printf("\n");
-        printf("---------------------------------------\n");
-        printf("Items\t\t");
-        printf("Qty\t\t");
-        printf("Total\t\t");
-        printf("\n---------------------------------------");
-        printf("\n\n");
+public class Main {
+    static int[][] rate = {
+            {0, 30}, {1, 35}, {2, 40}, {3, 20}, {4, 15}, {5, 20}, {6, 30}, {7, 80}, {8, 120}, {9, 20},
+            {10, 120}, {11, 150}, {12, 160}, {13, 30}, {14, 65}, {15, 50}, {16, 70}, {17, 80}, {18, 65},
+            {19, 110}, {20, 50}
+    };
+    static String[] foodItemList = {
+            "Toast", "Idli Wada", "Dosa", "Upma", "Milk", "Tea", "Coffee",
+            "Veg Biryani", "Special Meal", "Roti", "Dal Tadka", "Paneer Tikka", "Veg Mix", "Ice Cream",
+            "Fried Rice", "Spaghetti", "Burger", "Pasta", "Noodles", "Paratha", "Fruit Salad"
+    };
+
+  static class Node {
+        int itemNum;
+        int quantity;
+        Node link;
+
+        Node(int itemNum, int quantity) {
+            this.itemNum = itemNum;
+            this.quantity = quantity;
+            this.link = null;
+        }
+
+        // Getters and setters for Node properties
+        public int getItemNum() {
+            return itemNum;
+        }
+
+        public void setItemNum(int itemNum) {
+            this.itemNum = itemNum;
+        }
+
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(int quantity) {
+            this.quantity = quantity;
+        }
+
+        public Node getLink() {
+            return link;
+        }
+
+        public void setLink(Node link) {
+            this.link = link;
+        }
+    }
+
+    static Node getnode() {
+        Node allocate = new Node(0, 0); // Initialize with default values
+
+        if (allocate == null) {
+            System.out.println("Insufficient memory");
+            System.exit(0);
+        }
+        return allocate;
+    }
+   static void displayMainMenu() {
+    System.out.println("                Welcome to VINAY Restaurant.          \n " +
+            "             +============================+          \n\n" +
+            "                  $  Main Menu  $ \n\n" +
+            "  ~~ Please select an option from the menu ~~ \n\n" +
+            "\t\t   0) Display All Food Menu\n" +
+            "\t\t   1) Breakfast Menu\n" +
+            "\t\t   2) Lunch Menu\n" +
+            "\t\t   3) Dinner Menu\n" +
+            "\t\t   4) Display Bill\n" +
+            "\t\t   5) Exit\n");
 }
-void generateBillBody(char item[30],int qty, float price){
-    printf("%s\t\t",item); 
-        printf("%d\t\t",qty); 
-        printf("%.2f\t\t",qty * price); 
-        printf("\n");
+
+    // Implementing bfMenu
+    static void bfMenu(Node root) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            int ch;
+            int choice;
+
+            System.out.println("                Welcome to VINAY Restaurant.          \n " +
+                               "             +============================+          \n\n" +
+                               "                  $  Breakfast Menu  $ \n\n" +
+                               "  ~~ Please select the food that you would like to purchase with its serial number. ~~ \n\n" +
+                               "\t\t          Breakfast  " + 
+                               "\t\t   1) Toast - Rs 30.00\n" +
+                               "\t\t   2) Idli-Vada - Rs 35.00\n" +
+                               "\t\t   3) Dosa - Rs 40.00\n" +
+                               "\t\t   4) UPMA - Rs 20.00\n" +
+                               "\t\t   5) Milk- Rs 15.00\n" +
+                               "\t\t   6) Tea - Rs 20.00\n" +
+                               "\t\t   7) Coffee - Rs 30.00\n");
+
+            System.out.println("Enter an option in\n1]To order\n2]To cancel order\n3]Display order\n4]Display Main Menu\n5]Exit");
+            ch = scanner.nextInt();
+
+            // Implement the functionality based on user choice
+            switch(ch) {
+                case 1:
+                    root = foodOrder(root);
+                    break;
+
+                case 2:
+                    root = cancelOrder(root);
+                    break;
+
+                case 3:
+                    displayFoodOrder(root, foodItemList);
+                    break;
+
+                case 4:
+                    displayMainMenu();
+                    System.out.println("Enter the menu option to choose");
+                    choice = scanner.nextInt();
+
+                    switch(choice) {
+                        case 0:
+                            displayAllFoodMenu();
+                            break;
+
+                        case 1:
+                            bfMenu(root);
+                            break;
+
+                        case 2:
+                            lunchMenu(root);
+                            break;
+
+                        case 3:
+                            dinnerMenu(root);
+                            break;
+
+                        case 4:
+                            displayBill(root, rate, foodItemList);
+                            break;
+
+                        case 5:
+                            System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                            System.exit(0);
+                    }
+                    break;
+
+                case 5:
+                    System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                    System.exit(0);
+            }
+        }
+    }
+    static Node cancelOrder(Node root) {
+    Scanner scanner = new Scanner(System.in);
+
+    if (root == null) {
+        System.out.println("You haven't ordered anything to cancel.");
+        return null;
+    }
+
+    System.out.println("Enter the item number you want to cancel:");
+    int itemNumber = scanner.nextInt();
+
+    Node prev = null;
+    Node curr = root;
+
+    // Search for the item in the order list
+    while (curr != null && curr.getItemNum() != itemNumber) {
+        prev = curr;
+        curr = curr.getLink();
+    }
+
+    // If the item is found, remove it from the order list
+    if (curr != null) {
+        if (prev == null) {
+            // If the item to cancel is the root
+            root = curr.getLink();
+        } else {
+            // If the item to cancel is not the root
+            prev.setLink(curr.getLink());
+        }
+        System.out.println("Item removed from the order successfully.");
+    } else {
+        System.out.println("Item not found in the order list.");
+    }
+
+    return root;
+}
+
+    // Implementing lunchMenu
+    static void lunchMenu(Node root) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            int ch;
+            int choice;
+
+            System.out.println("                Welcome to VINAY Restaurant.          \n " +
+                               "             +============================+          \n\n" +
+                               "                   $  Lunch Menu  $ \n\n" +
+                               "  ~~ Please select the food that you would like to purchase. ~~ \n\n" +
+                               "\t\t   8) Veg Biryani - Rs 80.00\n" +
+                               "\t\t   9) Special Meal- Rs 120.00\n" +
+                               "\t\t   10) Roti - Rs 20.00\n" +
+                               "\t\t   11) Dal tadka - Rs 120.00\n" +
+                               "\t\t   12) Paneer Tikka - Rs 150.00\n" +
+                               "\t\t   13) Veg Mix - Rs 160.00\n" +
+                               "\t\t   14) Ice cream - Rs 30.00\n");
+
+            System.out.println("Enter an option in\n1]To order\n2]To cancel order\n3]Display order\n4]Display Main Menu\n5]Exit");
+            ch = scanner.nextInt();
+
+            // Implement the functionality based on user choice
+            switch(ch) {
+                case 1:
+                    root = foodOrder(root);
+                    break;
+
+                case 2:
+                    root = cancelOrder(root);
+                    break;
+
+                case 3:
+                    displayFoodOrder(root, foodItemList);
+                    break;
+
+                case 4:
+                    displayMainMenu();
+                    System.out.println("Enter the menu option to choose");
+                    choice = scanner.nextInt();
+
+                    switch(choice) {
+                        case 0:
+                            displayAllFoodMenu();
+                            break;
+
+                        case 1:
+                            bfMenu(root);
+                            break;
+
+                        case 2:
+                            lunchMenu(root);
+                            break;
+
+                        case 3:
+                            dinnerMenu(root);
+                            break;
+
+                        case 4:
+                            displayBill(root, rate, foodItemList);
+                            break;
+
+                        case 5:
+                            System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                            System.exit(0);
+                    }
+                    break;
+
+                case 5:
+                    System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                    System.exit(0);
+            }
+        }
+    }
+
+    // Implementing dinnerMenu
+    static void dinnerMenu(Node root) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            int ch;
+            int choice;
+
+            System.out.println("                Welcome to DSLV Restaurant.          \n " +
+                               "             +============================+          \n\n" +
+                               "                    $  Dinner Menu  $ \n\n" +
+                               "  ~~ Please select the food that you would like to purchase. ~~ \n\n" +
+                               "\t\t   15) Fried Rice - Rs 65.00\n" +
+                               "\t\t   16) Spaghetti - Rs 50.00\n" +
+                               "\t\t   17) Burger - Rs 70.00\n" +
+                               "\t\t   18) Pasta - Rs 80.00\n" +
+                               "\t\t   19) Noodles - Rs 65.00\n" +
+                               "\t\t   20) Paratha - Rs 110.00\n" +
+                               "\t\t   21) Fruit Salad - Rs 50.00\n");
+
+            System.out.println("Enter an option in\n1]To order\n2]To cancel order\n3]Display order\n4]Display Main Menu\n5]Exit");
+            ch = scanner.nextInt();
+
+            // Implement the functionality based on user choice
+            switch(ch) {
+                case 1:
+                    root = foodOrder(root);
+                    break;
+
+                case 2:
+                    root = cancelOrder(root);
+                    break;
+
+                case 3:
+                    displayFoodOrder(root, foodItemList);
+                    break;
+
+                case 4:
+                    displayMainMenu();
+                    System.out.println("Enter the food menu option to choose");
+                    choice = scanner.nextInt();
+
+                    switch(choice) {
+                        case 0:
+                            displayAllFoodMenu();
+                            break;
+
+                        case 1:
+                            bfMenu(root);
+                            break;
+
+                        case 2:
+                            lunchMenu(root);
+                            break;
+
+                        case 3:
+                            dinnerMenu(root);
+                            break;
+
+                        case 4:
+                            displayBill(root, rate, foodItemList);
+                            break;
+
+                        case 5:
+                            System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                            System.exit(0);
+                            break;
+                    }
+                    break;
+
+                case 5:
+                    System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                    System.exit(0);
+            }
+        }
+    }
+
+    // Implementing displayFoodOrder
+    static void displayFoodOrder(Node root, String[] foodItemList) {
+        if (root == null) {
+            System.out.println("You haven't ordered anything");
+            return;
+        }
+
+        Node temp = root;
+
+        System.out.println("\t\t~~Item Name\t\tItem Number\t\tItem Quantity\n");
+
+        while (temp != null) {
+            if (temp.getQuantity() == 0) {
+                temp = temp.getLink();
+            }
+            System.out.printf("\t\t%s\t\t\t%d\t\t\t%d\n\n", 
+                foodItemList[temp.getItemNum() - 1], temp.getItemNum(), temp.getQuantity());
+            temp = temp.getLink();
+        }
+    }
+    static Node foodOrder(Node root) {
+    Scanner scanner = new Scanner(System.in);
+
+    System.out.println("Enter the item number you want to order:");
+    int itemNumber = scanner.nextInt();
+
+    // Validate the item number
+    if (itemNumber < 1 || itemNumber > foodItemList.length) {
+        System.out.println("Invalid item number. Please enter a valid item number.");
+        return root;
+    }
+
+    System.out.println("Enter the quantity:");
+    int quantity = scanner.nextInt();
+
+    // Validate the quantity
+    if (quantity <= 0) {
+        System.out.println("Invalid quantity. Please enter a quantity greater than 0.");
+        return root;
+    }
+
+    // Create a new node for the ordered item
+    Node newNode = new Node(itemNumber, quantity);
+
+    // If the root is null, set the new node as the root
+    if (root == null) {
+        root = newNode;
+    } else {
+        // Traverse to the end of the list and append the new node
+        Node temp = root;
+        while (temp.getLink() != null) {
+            temp = temp.getLink();
+        }
+        temp.setLink(newNode);
+    }
+
+    System.out.println("Item added to the order successfully.");
+    return root;
+}
+static void displayAllFoodMenu() {
+    System.out.println("                  $  Breakfast Menu  $\t\t\t\t\t\t\t\t\t                  $  Lunch Menu  $ \n\n" +
+                       " ~~ Please select the breakfast that you would like to purchase with serial number ~~ \t" +
+                       " ~~ Please select the lunch that you would like to purchase ~~ \n\n" +
+                       "\t\t   1) Toast - Rs 30.00\t\t\t\t\t\t\t   8) Veg Biryani - Rs 80.00\n" +
+                       "\t\t   2) Idli-Vada - Rs 35.00\t\t\t\t\t\t   9) Special Meal- Rs 120.00\n" +
+                       "\t\t   3) Dosa - Rs 40.00\t\t\t\t\t\t\t   10) Roti - Rs 20.00\n" +
+                       "\t\t   4) UPMA - Rs 20.00\t\t\t\t\t\t\t   11) Dal tadka - Rs 120.00\n" +
+                       "\t\t   5) Milk- Rs 15.00\t\t\t\t\t\t\t   12) Paneer Tikka - Rs 150.00\n" +
+                       "\t\t   6) Tea - Rs 20.00\t\t\t\t\t\t\t   13) Veg Mix - Rs 160.00\n" +
+                       "\t\t   7) Coffee - Rs 30.00\t\t\t\t\t\t   14) Ice cream - Rs 30.00\n\n" +
+                       "\t\t\t\t\t         $  Dinner Menu  $ \n\n" +
+                       "\t\t\t\t\t\t ~~ Please select the food that you would like to purchase ~~ \n\n" +
+                       "\t\t\t\t\t\t   15) Fried Rice - Rs 65.00\n" +
+                       "\t\t\t\t\t\t   16) Spaghetti - Rs 50.00\n" +
+                       "\t\t\t\t\t\t   17) Burger - Rs 70.00\n" +
+                       "\t\t\t\t\t\t   18) Pasta - Rs 80.00\n" +
+                       "\t\t\t\t\t\t   19) Noodles - Rs 65.00\n" +
+                       "\t\t\t\t\t\t   20) Paratha - Rs 110.00\n" +
+                       "\t\t\t\t\t\t   21) Fruit Salad - Rs 50.00\n\n");
 }
 
 
 
-void generateBillFooter(float total){
-    printf("\n");
-    float dis = 0.1*total;
-    float netTotal=total-dis;
-    float cgst=0.09*netTotal,grandTotal=netTotal + 2*cgst;//netTotal + cgst + sgst
-    printf("---------------------------------------\n");
-    printf("Sub Total\t\t\t%.2f",total);
-    printf("\nDiscount @10%s\t\t\t%.2f","%",dis);
-    printf("\n\t\t\t\t-------");
-    printf("\nNet Total\t\t\t%.2f",netTotal);
-    printf("\nCGST @9%s\t\t\t%.2f","%",cgst);
-    printf("\nSGST @9%s\t\t\t%.2f","%",cgst);
-    printf("\n---------------------------------------");
-    printf("\nGrand Total\t\t\t%.2f",grandTotal);
-    printf("\n---------------------------------------\n");
-}
-int main(){
-    
-    int opt,n;
-    struct orders ord;
-    struct orders order;
-    char saveBill = 'y',contFlag = 'y';
-    char name[50];
-    FILE *fp;
-       //dashboard
-    while(contFlag == 'y'){
-    system("clear");
-    float total = 0;
-    int invoiceFound = 0;
-    printf("\t============ADV. RESTAURANT============");
-    printf("\n\nPlease select your prefered operation");
-    printf("\n\n1.Generate Invoice");
-    printf("\n2.Show all Invoices");
-    printf("\n3.Search Invoice");
-    printf("\n4.Exit");
 
-    printf("\n\nYour choice:\t");
-    scanf("%d",&opt);
-    fgetc(stdin);
-    switch(opt){
-        case 1:
-        system("clear");
-        printf("\nPlease enter the name of the customer:\t");
-        fgets(ord.customer,50,stdin);
-        ord.customer[strlen(ord.customer)-1] = 0;
-        strcpy(ord.date,__DATE__);
-        printf("\nPlease enter the number of items:\t");
-        scanf("%d",&n);
-        ord.numOfItems = n;
-        for(int i=0;i<n;i++){
-            fgetc(stdin);
-            printf("\n\n");
-            printf("Please enter the item %d:\t",i+1);
-            fgets(ord.itm[i].item,20,stdin);
-            ord.itm[i].item[strlen(ord.itm[i].item)-1]=0;
-            printf("Please enter the quantity:\t");
-            scanf("%d",&ord.itm[i].qty);
-            printf("Please enter the unit price:\t");
-            scanf("%f",&ord.itm[i].price);
-            total += ord.itm[i].qty * ord.itm[i].price;
-        }
-
-        generateBillHeader(ord.customer,ord.date);
-        for(int i=0;i<ord.numOfItems;i++){
-            generateBillBody(ord.itm[i].item,ord.itm[i].qty,ord.itm[i].price);
-        }
-        generateBillFooter(total);
-
-        printf("\nDo you want to save the invoice [y/n]:\t");
-        scanf("%s",&saveBill);
-
-        if(saveBill == 'y'){
-            fp = fopen("RestaurantBill.dat","a+");
-            fwrite(&ord,sizeof(struct orders),1,fp);
-            if(fwrite != 0)
-            printf("\nSuccessfully saved");
-            else 
-            printf("\nError saving");
-            fclose(fp);
-        }
-        break;
-
-        case 2:
-        system("clear");
-        fp = fopen("RestaurantBill.dat","r");
-        printf("\n  *****Your Previous Invoices*****\n");
-        while(fread(&order,sizeof(struct orders),1,fp)){
-            float tot = 0;
-            generateBillHeader(order.customer,order.date);
-            for(int i=0;i<order.numOfItems;i++){
-                generateBillBody(order.itm[i].item,order.itm[i].qty,order.itm[i].price);
-                tot+=order.itm[i].qty * order.itm[i].price;
-            }
-            generateBillFooter(tot);
-        }
-        fclose(fp);
-        break;
-
-        case 3:
-        printf("Enter the name of the customer:\t");
-        //fgetc(stdin);
-        fgets(name,50,stdin);
-        name[strlen(name)-1] = 0;
-        system("clear");
-        fp = fopen("RestaurantBill.dat","r");
-        printf("\t*****Invoice of %s*****",name);
-        while(fread(&order,sizeof(struct orders),1,fp)){
-            float tot = 0;
-            if(!strcmp(order.customer,name)){
-            generateBillHeader(order.customer,order.date);
-            for(int i=0;i<order.numOfItems;i++){
-                generateBillBody(order.itm[i].item,order.itm[i].qty,order.itm[i].price);
-                tot+=order.itm[i].qty * order.itm[i].price;
-            }
-            generateBillFooter(tot);
-            invoiceFound = 1;
-            }
+    // Implementing displayBill
+    static void displayBill(Node root, int[][] rate, String[] foodItemList) {
+        int bill = 0;
+        Node temp;
+        float gst, cgst, sgst, totalBill;
+        int choice;
         
+    LocalDate objda = LocalDate.now(); 
+
+        if (root == null) {
+            System.out.println("You haven't ordered anything to display the bill");
+            return;
         }
-        if(!invoiceFound){
-            printf("Sorry the invoice for %s doesnot exists",name);
+
+        System.out.println("  +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+          \n");
+        System.out.println("                      VINAY RESTAURANT                   ");
+        System.out.println("                    BILLING INFORMATION                ");
+        System.out.println("\t ITEM NAME\t\t ITEM NUMBER \t Quantity \tPrice(in Rs./item)\t    Total Price\n\n");
+
+        if (root.getLink() == null) {
+            int itemNum = root.getItemNum();
+            int quantity = root.getQuantity();
+            int pricePerItem = rate[itemNum - 1][1];
+            int totalPrice = quantity * pricePerItem;
+            
+            System.out.printf("\t%s\t\t     %d\t\t    %d\t\t\t%d\t\t     %d X %d = %d\n\n",
+                foodItemList[itemNum - 1], itemNum, quantity, pricePerItem, quantity, pricePerItem, totalPrice);
+            
+            bill = totalPrice;
+            System.out.printf("Total bill = %d\n", bill);
+            return;
         }
-        fclose(fp);
-        break;
 
-    case 4:
-    printf("\n\t\t Bye Bye :)\n\n");
-    exit(0);
-    break;
+        temp = root;
 
-    default:
-    printf("Sorry invalid option");
-    break;
+        while (temp != null) {
+            if (temp.getQuantity() == 0) {
+                temp = temp.getLink();
+            }
+
+            int itemNum = temp.getItemNum();
+            int quantity = temp.getQuantity();
+            int pricePerItem = rate[itemNum - 1][1];
+            int totalPrice = quantity * pricePerItem;
+            
+            System.out.printf("\t%s\t\t     %d\t\t    %d\t\t\t%d\t\t     %d X %d = %d\n\n",
+                foodItemList[itemNum - 1], itemNum, quantity, pricePerItem, quantity, pricePerItem, totalPrice);
+            
+            bill += totalPrice;
+            temp = temp.getLink();
+        }
+        
+        System.out.printf("\t  Total bill without gst = %d\n", bill);
+        gst = bill * 0.12f;
+        cgst = gst / 2;
+        sgst = cgst;
+        totalBill = bill + gst + cgst + sgst;
+        
+        System.out.println("------VINAY RESTAURANT BILL------|");
+        System.out.println("        ----------------         |");
+        System.out.println("---------------------------------|");
+        System.out.println("---------------------------------|");
+        System.out.println("Date :    " + objda);
+        System.out.println("---------------------------------|");
+        System.out.println("---------------------------------|");
+        System.out.println("WITHOUT GST Total : " +  bill);
+        System.out.println("                                 |");
+        System.out.println("---------------------------------|");
+        System.out.println("WITH GST Total    : " + totalBill);
+        System.out.println("                                 |");
+        System.out.println("---------------------------------|");
+        System.out.println(" Total            : " + totalBill);
+        System.out.println("---------------------------------|");
+        System.out.println("                                 |");
+        System.out.println("*----THANK YOU VISIT AGAIN-------|");
+        System.out.println("                                 ");
+        displayMainMenu();
+        System.out.println("Enter the food menu option to choose");
+        Scanner scanner = new Scanner(System.in);
+        choice = scanner.nextInt();
+        switch (choice) {
+            case 0:
+                displayAllFoodMenu();
+                break;
+
+            case 1:
+                bfMenu(root);
+                break;
+
+            case 2:
+                lunchMenu(root);
+                break;
+
+            case 3:
+                dinnerMenu(root);
+                break;
+
+            case 4:
+                displayBill(root, rate, foodItemList);
+                break;
+
+            case 5:
+                System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                System.exit(0);
+                break;
+        }
     }
-    printf("\nDo you want to perform another operation?[y/n]:\t");
-    scanf("%s",&contFlag);
-    }
-    printf("\n\t\t Bye Bye :)\n\n");
-    printf("\n\n");
+    
 
-    return 0;
+    // Rest of your code remains the same...
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+     // Create a date object
+     System.out.println("Enter Name of Customer : ");
+     String name = scanner.nextLine();
+     System.out.println("Nice to meet You  " + name); 
+
+    int ch;
+    Node root = null;
+
+    while (true) {
+        displayMainMenu();
+        System.out.println("Enter the option to choose");
+        ch = scanner.nextInt();
+
+        switch(ch) {
+            case 0:
+                displayAllFoodMenu();
+                break;
+
+            case 1:
+                bfMenu(root);
+                break;
+
+            case 2:
+                lunchMenu(root);
+                break;
+
+            case 3:
+                dinnerMenu(root);
+                break;
+
+            case 4:
+                displayBill(root, rate, foodItemList);
+                System.out.println("THANK YOU : " + name);
+                break;
+
+            case 5:
+                System.out.println("THANK YOU FOR VISITING VINAY RESTAURANT");
+                System.exit(0);
+
+            default:
+                break;
+        }
+    }
+}
+
 }
